@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>yubalkt — Android app for yubal</title>
+<base href="/yubalkt/">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cg fill='none' stroke='%232FD8B8' stroke-width='5' stroke-linecap='round'%3E%3Ccircle cx='50' cy='50' r='16'/%3E%3Cpath d='M 24 40 A 14 14 0 0 0 24 60'/%3E%3Cpath d='M 76 40 A 14 14 0 0 1 76 60'/%3E%3C/g%3E%3Ccircle cx='50' cy='50' r='4.5' fill='%232FD8B8'/%3E%3C/svg%3E" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#08090A;
+    --surface:#14171A;
+    --elevated:#1B1F21;
+    --elevated-2:#22272A;
+    --teal:#2FD8B8;
+    --teal-dark:#0EA5A0;
+    --teal-dim:rgba(47,216,184,0.12);
+    --text-primary:#F5F7F7;
+    --text-secondary:#8B9494;
+    --text-tertiary:#5C6666;
+    --border:rgba(154,163,163,0.14);
+    --border-strong:rgba(154,163,163,0.24);
+    --green:#16A34A;
+    --danger:#E5484D;
+    --radius-sm:8px;
+    --radius-md:14px;
+    --radius-lg:22px;
+    --display:'Space Grotesk', 'Inter', sans-serif;
+    --body:'Inter', sans-serif;
+    --mono:'JetBrains Mono', monospace;
+  }
+
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    background:var(--bg);
+    color:var(--text-primary);
+    font-family:var(--body);
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+  }
+  a{color:inherit;text-decoration:none;}
+  ul{list-style:none;}
+  img{max-width:100%;display:block;}
+  button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit;}
+
+  ::selection{background:var(--teal);color:#08090A;}
+
+  @media (prefers-reduced-motion: reduce){
+    *{animation-duration:0.001ms !important; animation-iteration-count:1 !important; transition-duration:0.001ms !important;}
+  }
+
+  .wrap{max-width:1180px;margin:0 auto;padding:0 32px;}
+
+  /* ---------- background atmosphere ---------- */
+  .bg-glow{
+    position:fixed;
+    inset:0;
+    z-index:0;
+    pointer-events:none;
+    background:
+      radial-gradient(680px 480px at 82% 8%, rgba(47,216,184,0.16), transparent 60%),
+      radial-gradient(520px 420px at 10% 30%, rgba(14,165,160,0.08), transparent 65%);
+  }
+  .grain{
+    position:fixed;inset:0;z-index:1;pointer-events:none;opacity:.035;mix-blend-mode:overlay;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  /* ---------- nav ---------- */
+  header{
+    position:sticky;top:0;z-index:50;
+    background:rgba(8,9,10,0.72);
+    backdrop-filter:blur(14px);
+    border-bottom:1px solid var(--border);
+  }
+  nav{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:18px 0;
+  }
+  .logo{display:flex;align-items:center;gap:10px;font-family:var(--display);font-weight:700;font-size:19px;letter-spacing:-0.01em;}
+    .logo-mark{
+      width:30px;height:30px;border-radius:9px;
+      display:flex;align-items:center;justify-content:center;
+      background: transparent;
+      box-shadow: none;
+    }
+
+  .logo-mark svg{width:16px;height:16px;}
+  .nav-links{display:flex;align-items:center;gap:36px;}
+  .nav-links a{
+    font-size:14px;color:var(--text-secondary);font-weight:500;
+    transition:color .18s ease;
+  }
+  .nav-links a:hover{color:var(--text-primary);}
+  .nav-cta{display:flex;align-items:center;gap:14px;}
+  .btn{
+    display:inline-flex;align-items:center;gap:8px;
+    padding:10px 20px;border-radius:10px;
+    font-size:14px;font-weight:600;
+    transition:transform .18s ease, box-shadow .18s ease, background .18s ease, border-color .18s ease;
+  }
+  .btn-primary{
+    background:var(--teal);color:#062420;
+    box-shadow:0 6px 22px rgba(47,216,184,0.28);
+  }
+  .btn-primary:hover{transform:translateY(-1px);box-shadow:0 10px 28px rgba(47,216,184,0.4);}
+  .btn-ghost{
+    background:transparent;color:var(--text-primary);
+    border:1px solid var(--border-strong);
+  }
+  .btn-ghost:hover{border-color:var(--teal);color:var(--teal);}
+  .btn-sm{padding:8px 15px;font-size:13px;}
+  .gh-star{display:none;}
+  @media(min-width:860px){.gh-star{display:inline-flex;}}
+
+  /* ---------- hero ---------- */
+  .hero{
+    position:relative;z-index:2;
+    padding:96px 0 60px;
+    display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:center;
+  }
+  .eyebrow{
+    display:inline-flex;align-items:center;gap:8px;
+    font-family:var(--mono);font-size:12px;letter-spacing:0.06em;
+    color:var(--teal);background:var(--teal-dim);
+    border:1px solid rgba(47,216,184,0.25);
+    padding:6px 12px;border-radius:100px;
+    margin-bottom:22px;
+  }
+  .eyebrow .dot{width:6px;height:6px;border-radius:50%;background:var(--teal);box-shadow:0 0 8px var(--teal);}
+  h1{
+    font-family:var(--display);
+    font-size:clamp(38px, 4.6vw, 58px);
+    line-height:1.04;
+    font-weight:700;
+    letter-spacing:-0.02em;
+    margin-bottom:20px;
+  }
+  h1 .accent{color:var(--teal);}
+  .hero p.lede{
+    font-size:17px;line-height:1.65;color:var(--text-secondary);
+    max-width:440px;margin-bottom:32px;
+  }
+  .hero-ctas{display:flex;align-items:center;gap:14px;margin-bottom:36px;}
+  .btn-lg{padding:14px 26px;font-size:15px;border-radius:12px;}
+  .trust-row{display:flex;align-items:center;gap:12px;}
+  .trust-row .stack{display:flex;}
+  .trust-row .stack span{
+    width:28px;height:28px;border-radius:50%;
+    background:var(--elevated-2);border:2px solid var(--bg);
+    margin-left:-8px;display:flex;align-items:center;justify-content:center;
+    font-size:11px;font-weight:700;color:var(--text-secondary);
+  }
+  .trust-row .stack span:first-child{margin-left:0;}
+  .trust-row .label{font-size:13px;color:var(--text-tertiary);font-family:var(--mono);}
+
+  /* ---------- phone mockup ---------- */
+  .phone-stage{
+    position:relative;display:flex;justify-content:center;align-items:center;
+    perspective:1200px;
+  }
+  .phone{
+    width:280px;
+    background:linear-gradient(160deg, #1a1e20, #0c0e0f);
+    border-radius:38px;
+    padding:12px;
+    box-shadow:
+      0 30px 70px rgba(0,0,0,0.55),
+      0 0 0 1px rgba(255,255,255,0.06) inset,
+      0 0 90px rgba(47,216,184,0.16);
+    transform:rotateY(-8deg) rotateX(2deg);
+    animation:float 6s ease-in-out infinite;
+  }
+  @keyframes float{
+    0%,100%{transform:rotateY(-8deg) rotateX(2deg) translateY(0px);}
+    50%{transform:rotateY(-8deg) rotateX(2deg) translateY(-12px);}
+  }
+  .phone-screen{
+    background:var(--bg);
+    border-radius:28px;
+    overflow:hidden;
+    border:1px solid rgba(255,255,255,0.06);
+  }
+  .phone-notch{
+    height:28px;display:flex;align-items:center;justify-content:center;
+  }
+  .phone-notch::before{
+    content:'';width:80px;height:18px;background:#000;border-radius:12px;
+  }
+  .phone-body{padding:6px 14px 18px;}
+  .ph-title{
+    font-family:var(--display);font-weight:700;font-size:15px;
+    display:flex;align-items:center;justify-content:space-between;
+    margin-bottom:14px;
+  }
+  .ph-title .tag{
+    font-family:var(--mono);font-size:9px;color:var(--teal);
+    background:var(--teal-dim);padding:3px 7px;border-radius:6px;
+  }
+  .kpi-row{display:flex;gap:8px;margin-bottom:12px;}
+  .kpi{
+    flex:1;background:var(--surface);border:1px solid var(--border);
+    border-radius:10px;padding:9px 10px;
+  }
+  .kpi b{display:block;font-size:16px;font-family:var(--display);color:var(--teal);}
+  .kpi span{font-size:8px;font-family:var(--mono);color:var(--text-tertiary);letter-spacing:0.05em;}
+  .job{
+    background:var(--surface);border:1px solid var(--border);
+    border-radius:10px;padding:9px 10px;margin-bottom:8px;
+    display:flex;gap:8px;align-items:center;
+  }
+  .job .art{
+    width:30px;height:30px;border-radius:7px;flex-shrink:0;
+    background:linear-gradient(135deg,#3a2e1c,#171310);
+  }
+  .job .meta{flex:1;min-width:0;}
+  .job .meta .t{font-size:11px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .job .meta .a{font-size:9.5px;color:var(--text-tertiary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .job .pct{font-family:var(--mono);font-size:9px;color:var(--teal);}
+  .wave{
+    height:5px;border-radius:4px;overflow:hidden;background:rgba(255,255,255,0.06);margin-top:6px;
+  }
+  .wave-fill{
+    height:100%;width:64%;border-radius:4px;
+    background:linear-gradient(90deg, var(--teal-dark), var(--teal));
+    position:relative;
+    animation:pulse-fill 2.4s ease-in-out infinite;
+  }
+  @keyframes pulse-fill{0%,100%{width:58%;}50%{width:74%;}}
+  .pill{
+    display:inline-flex;font-family:var(--mono);font-size:8px;
+    padding:2px 6px;border-radius:5px;background:var(--teal-dim);color:var(--teal);
+  }
+  .pill.done{background:rgba(22,163,74,0.14);color:#3ecc73;}
+
+  /* ---------- logos row ---------- */
+  .logos{
+    position:relative;z-index:2;
+    padding:34px 0 70px;
+    border-top:1px solid var(--border);
+    margin-top:20px;
+  }
+  .logos .label{
+    text-align:center;font-family:var(--mono);font-size:12px;color:var(--text-tertiary);
+    letter-spacing:0.08em;margin-bottom:26px;
+  }
+  .logos-track{
+    display:flex;justify-content:center;flex-wrap:wrap;gap:14px;
+  }
+  .logo-pill{
+    font-family:var(--mono);font-size:13px;color:var(--text-secondary);
+    border:1px solid var(--border);padding:9px 18px;border-radius:100px;
+    display:flex;align-items:center;gap:8px;
+    transition:border-color .2s ease, color .2s ease;
+  }
+  .logo-pill:hover{border-color:var(--teal);color:var(--teal);}
+  .logo-pill .sq{width:6px;height:6px;background:var(--teal);border-radius:2px;}
+
+  /* ---------- section shared ---------- */
+  section{position:relative;z-index:2;}
+  .section-head{max-width:600px;margin-bottom:56px;}
+  .section-eyebrow{
+    font-family:var(--mono);font-size:12px;color:var(--teal);letter-spacing:0.08em;margin-bottom:14px;
+    display:block;
+  }
+  .section-head h2{
+    font-family:var(--display);font-size:clamp(28px,3.4vw,40px);font-weight:700;letter-spacing:-0.02em;
+    line-height:1.15;margin-bottom:14px;
+  }
+  .section-head p{color:var(--text-secondary);font-size:16px;line-height:1.6;}
+
+  /* ---------- feature tabs ---------- */
+  .features{padding:60px 0 100px;}
+  .feature-layout{
+    display:grid;grid-template-columns:280px 1fr;gap:56px;align-items:center;
+  }
+  .tab-list{display:flex;flex-direction:column;gap:4px;}
+  .tab-item{
+    padding:18px 18px;border-radius:14px;cursor:pointer;
+    border:1px solid transparent;
+    transition:background .2s ease, border-color .2s ease;
+    position:relative;
+  }
+  .tab-item .th{
+    display:flex;align-items:center;gap:10px;
+    font-family:var(--display);font-weight:600;font-size:16px;margin-bottom:6px;
+  }
+  .tab-item .th .num{font-family:var(--mono);font-size:12px;color:var(--text-tertiary);}
+  .tab-item p{
+    font-size:13.5px;color:var(--text-tertiary);line-height:1.55;
+    max-height:0;opacity:0;overflow:hidden;
+    transition:max-height .3s ease, opacity .25s ease, margin .3s ease;
+  }
+  .tab-item.active{
+    background:var(--surface);
+    border-color:var(--border-strong);
+  }
+  .tab-item.active .th{color:var(--teal);}
+  .tab-item.active p{max-height:80px;opacity:1;color:var(--text-secondary);}
+  .tab-item:not(.active):hover{background:rgba(255,255,255,0.02);}
+
+  .feature-stage{
+    display:flex;justify-content:center;position:relative;
+    min-height:560px;align-items:center;
+  }
+  .feature-stage::before{
+    content:'';position:absolute;width:400px;height:400px;border-radius:50%;
+    background:radial-gradient(circle, rgba(47,216,184,0.14), transparent 68%);
+    z-index:0;
+  }
+  .fphone{
+    width:300px;position:relative;z-index:1;
+    background:linear-gradient(160deg, #1a1e20, #0c0e0f);
+    border-radius:40px;padding:12px;
+    box-shadow:0 30px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.06) inset;
+  }
+  .fphone-screen{
+    background:var(--bg);
+    border-radius:30px;
+    overflow:hidden;
+    border:1px solid rgba(255,255,255,0.06);
+    min-height:560px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    position:relative;
+  }
+  .fscreen-img{
+    display:none;
+    width:100%;
+    height:auto;
+    border-radius:20px;
+    object-fit:contain;
+  }
+  .fscreen-img.active{
+    display:block;
+    animation:fadein .4s ease;
+  }
+  @keyframes fadein{
+    from{opacity:0;transform:translateY(6px);}
+    to{opacity:1;transform:translateY(0);}
+  }
+.hero-phone-img {
+display: none;
+width: 100%;
+height: auto;
+border-radius: 20px;
+}
+.hero-phone-img.active {
+display: block;
+animation: fadein 0.5s ease;
+}
+
+
+  /* ---------- how it works / connect ---------- */
+  .connect{padding:100px 0;border-top:1px solid var(--border);}
+  .connect-grid{display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center;}
+  .steps{display:flex;flex-direction:column;gap:0;}
+  .step{display:flex;gap:20px;padding:22px 0;border-top:1px solid var(--border);}
+  .step:last-child{border-bottom:1px solid var(--border);}
+  .step .n{font-family:var(--mono);font-size:13px;color:var(--teal);flex-shrink:0;padding-top:2px;}
+  .step h3{font-family:var(--display);font-size:17px;font-weight:600;margin-bottom:6px;}
+  .step p{font-size:14px;color:var(--text-secondary);line-height:1.6;}
+  .code-card{
+    background:var(--surface);border:1px solid var(--border-strong);border-radius:16px;
+    padding:24px;font-family:var(--mono);font-size:13px;line-height:1.8;
+    box-shadow:0 20px 50px rgba(0,0,0,0.4);
+  }
+  .code-card .cch{display:flex;gap:7px;margin-bottom:16px;}
+  .code-card .cch span{width:10px;height:10px;border-radius:50%;background:var(--elevated-2);}
+  .code-card .comment{color:var(--text-tertiary);}
+  .code-card .key{color:var(--teal);}
+  .code-card .str{color:#e0c67a;}
+
+  /* ---------- CTA band ---------- */
+  .cta-band{padding:100px 0;}
+  .cta-card{
+    position:relative;overflow:hidden;
+    background:linear-gradient(160deg, var(--surface), var(--bg));
+    border:1px solid var(--border-strong);
+    border-radius:28px;
+    padding:70px 40px;text-align:center;
+  }
+  .cta-card::before{
+    content:'';position:absolute;inset:0;
+    background:radial-gradient(500px 260px at 50% 0%, rgba(47,216,184,0.2), transparent 70%);
+  }
+  .cta-card > *{position:relative;z-index:1;}
+  .cta-card h2{font-family:var(--display);font-size:clamp(28px,4vw,42px);font-weight:700;letter-spacing:-0.02em;margin-bottom:16px;}
+  .cta-card p{color:var(--text-secondary);font-size:16px;margin-bottom:30px;}
+  .cta-btns{display:flex;justify-content:center;gap:14px;flex-wrap:wrap;}
+
+  /* ---------- footer ---------- */
+  footer{border-top:1px solid var(--border);padding:50px 0 34px;}
+  .footer-top{display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:30px;margin-bottom:40px;}
+  .footer-links{display:flex;gap:44px;flex-wrap:wrap;}
+  .footer-col h4{font-family:var(--mono);font-size:11px;color:var(--text-tertiary);letter-spacing:0.08em;margin-bottom:14px;}
+  .footer-col a{display:block;font-size:13.5px;color:var(--text-secondary);margin-bottom:10px;transition:color .18s;}
+  .footer-col a:hover{color:var(--teal);}
+  .footer-bottom{
+    display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;
+    padding-top:24px;border-top:1px solid var(--border);
+    font-family:var(--mono);font-size:12px;color:var(--text-tertiary);
+  }
+
+  /* ---------- responsive ---------- */
+  @media(max-width:900px){
+    .nav-links{display:none;}
+    .hero{grid-template-columns:1fr;padding-top:60px;text-align:center;}
+    .hero p.lede{margin-left:auto;margin-right:auto;}
+    .hero-ctas{justify-content:center;}
+    .trust-row{justify-content:center;}
+    .phone-stage{margin-top:40px;}
+    .feature-layout{grid-template-columns:1fr;}
+    .tab-list{flex-direction:row;overflow-x:auto;gap:8px;padding-bottom:6px;}
+    .tab-item{flex-shrink:0;min-width:220px;}
+    .connect-grid{grid-template-columns:1fr;}
+    .wrap{padding:0 20px;}
+  }
+</style>
+</head>
+<body>
+
+<div class="bg-glow"></div>
+<div class="grain"></div>
+
+<header>
+  <div class="wrap">
+    <nav>
+      <a href="#" class="logo">
+        <span class="logo-mark">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="32" height="32">
+
+                <rect x="4" y="4" width="92" height="92" rx="22" ry="22" fill="#101314"/>
+                <g fill="none" stroke="#2FD8B8" stroke-width="5" stroke-linecap="round">
+                    <circle cx="50" cy="50" r="16"/>
+                    <path d="M 24 40 A 14 14 0 0 0 24 60"/>
+                    <path d="M 76 40 A 14 14 0 0 1 76 60"/>
+                </g>
+                <circle cx="50" cy="50" r="4.5" fill="#2FD8B8"/>
+            </svg>
+        </span>
+        yubalkt
+      </a>
+      <ul class="nav-links">
+        <li><a href="#features">Features</a></li>
+        <li><a href="#connect">Self-hosting</a></li>
+        <li><a href="#faq">FAQ</a></li>
+      </ul>
+      <div class="nav-cta">
+        <a href="https://github.com/Imnotndesh/yubalkt" class="btn btn-ghost btn-sm gh-star" target="_blank">★ Star on GitHub</a>
+        <a href="https://github.com/Imnotndesh/yubalkt/releases" class="btn btn-primary btn-sm" target="_blank">Get the app</a>
+      </div>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <!-- HERO -->
+  <section class="hero wrap">
+    <div class="hero-copy">
+      <h1>Own your music.<br>Not a <span class="accent">subscription</span>.</h1>
+      <p class="lede">yubal downloads and syncs music from YouTube straight to your own server — tagged, artwork included, and organized automatically. This is the Android app that puts it in your pocket.</p>
+      <div class="hero-ctas">
+        <a href="https://github.com/Imnotndesh/yubalkt/releases" class="btn btn-primary btn-lg" target="_blank">Download for Android</a>
+        <a href="#connect" class="btn btn-ghost btn-lg">Set up your server →</a>
+      </div>
+    </div>
+
+    <div class="phone-stage">
+    <div class="phone">
+        <div class="phone-screen">
+        <div class="phone-notch"></div>
+        <div class="phone-body">
+            <img class="hero-phone-img active" src="images/downloads.jpg" alt="yubal Downloads screen">
+            <img class="hero-phone-img" src="images/btm_sheet.jpg" alt="yubal share sheet">
+            <img class="hero-phone-img" src="images/playlists.jpg" alt="yubal Playlists screen">
+            <img class="hero-phone-img" src="images/settings.jpg" alt="yubal Settings screen">
+            <img class="hero-phone-img" src="images/setup.jpg" alt="yubal Setup screen">
+        </div>
+        </div>
+    </div>
+    </div>
+
+  </section>
+
+  <!-- LOGOS -->
+  <section class="logos wrap">
+    <div class="label">BUILT ON THE TOOLS YOU ALREADY TRUST</div>
+    <div class="logos-track">
+      <span class="logo-pill"><span class="sq"></span>yt-dlp</span>
+      <span class="logo-pill"><span class="sq"></span>ytmusicapi</span>
+      <span class="logo-pill"><span class="sq"></span>Docker</span>
+      <span class="logo-pill"><span class="sq"></span>OPUS audio</span>
+      <span class="logo-pill"><span class="sq"></span>Android 8+</span>
+      <span class="logo-pill"><span class="sq"></span>REST API</span>
+    </div>
+  </section>
+
+  <!-- FEATURES (app walkthrough with screenshots) -->
+  <section class="features wrap" id="features">
+    <div class="section-head">
+      <span class="section-eyebrow">FEATURES WALKTHROUGH</span>
+      <h2>Everything your desktop dashboard does. In your pocket.</h2>
+      <p>The Android app mirrors your yubal server in real time — queue downloads, manage syncing playlists, and get notified the moment a track lands.</p>
+    </div>
+
+    <div class="feature-layout">
+      <div class="tab-list" id="tabList">
+        <div class="tab-item active" data-tab="downloads">
+          <div class="th"><span class="num">01</span> Downloads</div>
+          <p>Paste a link, watch it move through fetching, downloading, and importing with a live wavy progress bar.</p>
+        </div>
+        <div class="tab-item" data-tab="share">
+          <div class="th"><span class="num">02</span> Share to download</div>
+          <p>Share any track, album, or playlist link straight from YouTube into yubal — a preview pops up, one tap queues it.</p>
+        </div>
+        <div class="tab-item" data-tab="playlists">
+          <div class="th"><span class="num">03</span> Playlist sync</div>
+          <p>Subscribe once. New tracks get pulled in automatically on your own schedule, no re-checking required.</p>
+        </div>
+        <div class="tab-item" data-tab="settings">
+          <div class="th"><span class="num">04</span> Server settings</div>
+          <p>Upload cookies for private content, browse raw server logs, and manage your connection — all on device.</p>
+        </div>
+        <div class="tab-item" data-tab="setup">
+          <div class="th"><span class="num">05</span> One-time setup</div>
+          <p>Point the app at your server URL, test the connection, and you're syncing — no accounts, ever.</p>
+        </div>
+      </div>
+
+      <div class="feature-stage">
+        <div class="fphone">
+          <div class="fphone-screen">
+            <img class="fscreen-img active" data-screen="downloads" src="images/downloads.jpg" alt="yubal Downloads screen showing completed jobs">
+            <img class="fscreen-img" data-screen="share" src="images/btm_sheet.jpg" alt="yubal share sheet with bottom sheet preview">
+            <img class="fscreen-img" data-screen="playlists" src="images/playlists.jpg" alt="yubal Playlists screen with active subscription table">
+            <img class="fscreen-img" data-screen="settings" src="images/settings.jpg" alt="yubal Settings screen with cookies and server logs">
+            <img class="fscreen-img" data-screen="setup" src="images/setup.jpg" alt="yubal Server Setup screen">
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SELF HOSTING / CONNECT -->
+  <section class="connect wrap" id="connect">
+    <div class="connect-grid">
+      <div>
+        <span class="section-eyebrow"> GETTING STARTED</span>
+        <h2 style="font-family:var(--display);font-size:clamp(26px,3vw,34px);font-weight:700;letter-spacing:-0.02em;margin-bottom:30px;">Point the app at a server you control.</h2>
+        <div class="steps">
+          <div class="step">
+            <span class="n">01</span>
+            <div><h3>Run the yubal server</h3><p>Deploy the Docker image on your NAS, home server, or VPS. Takes one command.</p></div>
+          </div>
+          <div class="step">
+            <span class="n">02</span>
+            <div><h3>Connect the app</h3><p>Enter your server URL, tap Test Connection, and you're synced — no accounts, no cloud middleman.</p></div>
+          </div>
+          <div class="step">
+            <span class="n">03</span>
+            <div><h3>Share and forget</h3><p>Share any YouTube link into yubal from your phone. It queues, downloads, and tags itself.</p></div>
+          </div>
+        </div>
+      </div>
+        <div class="code-card">
+        <div class="cch"><span></span><span></span><span></span></div>
+        <div class="comment"># compose.yaml</div>
+        <div><span class="key">services</span>:</div>
+        <div>&nbsp;&nbsp;yubal:</div>
+        <div>&nbsp;&nbsp;&nbsp;&nbsp;<span class="key">image</span>: <span class="str">ghcr.io/guillevc/yubal:latest</span></div>
+        <div>&nbsp;&nbsp;&nbsp;&nbsp;<span class="key">container_name</span>: <span class="str">yubal</span></div>
+        <div>&nbsp;&nbsp;&nbsp;&nbsp;<span class="key">ports</span>:</div>
+        <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- <span class="str">8000:8000</span></div>
+        <div>&nbsp;&nbsp;&nbsp;&nbsp;<span class="key">environment</span>:</div>
+        <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="key">PUID</span>: <span class="str">1000</span></div>
+        <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="key">PGID</span>: <span class="str">1000</span></div>
+        <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="key">YUBAL_SCHEDULER_CRON</span>: <span class="str">"0 0 * * *"</span></div>
+        <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="key">YUBAL_DOWNLOAD_UGC</span>: <span class="str">false</span></div>
+        <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="key">YUBAL_TZ</span>: <span class="str">UTC</span></div>
+        <div>&nbsp;&nbsp;&nbsp;&nbsp;<span class="key">volumes</span>:</div>
+        <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- <span class="str">./data:/app/data</span></div>
+        <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- <span class="str">./config:/app/config</span></div>
+        <div>&nbsp;&nbsp;&nbsp;&nbsp;<span class="key">restart</span>: <span class="str">unless-stopped</span></div>
+        <br>
+        <div class="comment"># then, in the app:</div>
+        <div><span class="key">Server URL</span> → <span class="str">http://192.168.1.50:8000</span></div>
+        </div>
+    </div>
+  </section>
+    <!-- FAQ -->
+    <section class="wrap" id="faq" style="padding:80px 0;border-top:1px solid var(--border);">
+    <div class="section-head">
+        <span class="section-eyebrow">FAQ</span>
+        <h2>Frequently asked questions</h2>
+    </div>
+
+    <div style="max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:4px;">
+        <details style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px 22px;cursor:pointer;">
+        <summary style="font-weight:600;font-size:15px;list-style:none;display:flex;justify-content:space-between;align-items:center;">
+            What is YubalKt?
+            <span style="font-family:var(--mono);color:var(--text-tertiary);font-size:13px;">+</span>
+        </summary>
+        <p style="margin-top:12px;color:var(--text-secondary);line-height:1.6;font-size:14px;">
+            YubalKt is a native Android client for the self-hosted <a href="https://github.com/guillevc/yubal" style="color:var(--teal);text-decoration:underline;" target="_blank">yubal</a> server. It lets you queue downloads, manage playlist subscriptions, and monitor jobs from your phone — no browser required.
+        </p>
+        </details>
+
+        <details style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px 22px;cursor:pointer;">
+        <summary style="font-weight:600;font-size:15px;list-style:none;display:flex;justify-content:space-between;align-items:center;">
+            Do I need a server to use this app?
+            <span style="font-family:var(--mono);color:var(--text-tertiary);font-size:13px;">+</span>
+        </summary>
+        <p style="margin-top:12px;color:var(--text-secondary);line-height:1.6;font-size:14px;">
+            Yes. This app requires an active, self-hosted yubal server instance reachable from your device. You'll need to run the server (via Docker or similar) before the app can connect.
+        </p>
+        </details>
+
+        <details style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px 22px;cursor:pointer;">
+        <summary style="font-weight:600;font-size:15px;list-style:none;display:flex;justify-content:space-between;align-items:center;">
+            How do I share links into the app?
+            <span style="font-family:var(--mono);color:var(--text-tertiary);font-size:13px;">+</span>
+        </summary>
+        <p style="margin-top:12px;color:var(--text-secondary);line-height:1.6;font-size:14px;">
+            From YouTube, YouTube Music, or your browser, use the native <strong>Share</strong> action and select <strong>yubal</strong>. A preview sheet will appear with the content's title, artist, and thumbnail — one tap to download or subscribe.
+        </p>
+        </details>
+
+        <details style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px 22px;cursor:pointer;">
+        <summary style="font-weight:600;font-size:15px;list-style:none;display:flex;justify-content:space-between;align-items:center;">
+            Can I sync playlists automatically?
+            <span style="font-family:var(--mono);color:var(--text-tertiary);font-size:13px;">+</span>
+        </summary>
+        <p style="margin-top:12px;color:var(--text-secondary);line-height:1.6;font-size:14px;">
+            Yes. Subscribe to any playlist or album URL, and the app will sync new tracks automatically on your server’s schedule. You can also trigger a manual sync for any subscription.
+        </p>
+        </details>
+
+        <details style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px 22px;cursor:pointer;">
+        <summary style="font-weight:600;font-size:15px;list-style:none;display:flex;justify-content:space-between;align-items:center;">
+            What about age-restricted or private content?
+            <span style="font-family:var(--mono);color:var(--text-tertiary);font-size:13px;">+</span>
+        </summary>
+        <p style="margin-top:12px;color:var(--text-secondary);line-height:1.6;font-size:14px;">
+            You can upload a <code style="background:var(--elevated-2);padding:2px 6px;border-radius:4px;font-family:var(--mono);font-size:13px;">cookies.txt</code> file (Netscape format) from the Settings screen. This unlocks private playlists and age‑restricted downloads.
+        </p>
+        </details>
+
+        <details style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px 22px;cursor:pointer;">
+        <summary style="font-weight:600;font-size:15px;list-style:none;display:flex;justify-content:space-between;align-items:center;">
+            How do I get started?
+            <span style="font-family:var(--mono);color:var(--text-tertiary);font-size:13px;">+</span>
+        </summary>
+        <p style="margin-top:12px;color:var(--text-secondary);line-height:1.6;font-size:14px;">
+            Make sure your yubal server is running and reachable. Launch the app, enter your server URL (e.g. <code style="background:var(--elevated-2);padding:2px 6px;border-radius:4px;font-family:var(--mono);font-size:13px;">http://192.168.1.50:8000</code>), tap <strong>Test</strong>, then <strong>Save &amp; Connect</strong>. Done.
+        </p>
+        </details>
+
+        <details style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px 22px;cursor:pointer;">
+        <summary style="font-weight:600;font-size:15px;list-style:none;display:flex;justify-content:space-between;align-items:center;">
+            Is this the official yubal app?
+            <span style="font-family:var(--mono);color:var(--text-tertiary);font-size:13px;">+</span>
+        </summary>
+        <p style="margin-top:12px;color:var(--text-secondary);line-height:1.6;font-size:14px;">
+            It's a companion app built by the community, designed to pair with the official <a href="https://github.com/guillevc/yubal" style="color:var(--teal);text-decoration:underline;" target="_blank">yubal</a> server. It mirrors the web UI's style and functionality, putting the same experience in your pocket.
+        </p>
+        </details>
+    </div>
+    </section>
+
+
+  <!-- CTA -->
+  <section class="cta-band wrap">
+    <div class="cta-card">
+      <h2>Your library. Your server. Your rules.</h2>
+      <p>Free and open source — yubal never touches the cloud.</p>
+      <div class="cta-btns">
+        <a href="https://github.com/Imnotndesh/yubalkt/releases" class="btn btn-primary btn-lg" target="_blank">Download for Android</a>
+        <a href="https://github.com/Imnotndesh/yubalkt" class="btn btn-ghost btn-lg" target="_blank">View on GitHub</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="footer-top">
+      <a href="#" class="logo">
+      <span class="logo-mark">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="32" height="32">
+              <g fill="none" stroke="#2FD8B8" stroke-width="5" stroke-linecap="round">
+                <circle cx="50" cy="50" r="16"/>
+                <path d="M 24 40 A 14 14 0 0 0 24 60"/>
+                <path d="M 76 40 A 14 14 0 0 1 76 60"/>
+              </g>
+              <circle cx="50" cy="50" r="4.5" fill="#2FD8B8"/>
+            </svg>
+        </span>
+        yubalkt
+      </a>
+      <div class="footer-links">
+        <div class="footer-col">
+          <h4>PRODUCT</h4>
+          <a href="#features">Features</a>
+          <a href="#connect">Self-hosting</a>
+          <a href="https://github.com/Imnotndesh/yubalkt">Changelog</a>
+        </div>
+        <div class="footer-col">
+          <h4>PROJECT</h4>
+          <a href="https://github.com/Imnotndesh/yubalkt" target="_blank">GitHub</a>
+          <a href="https://github.com/Imnotndesh/yubalkt/issues" target="_blank">Issues</a>
+        </div>
+        <div class="footer-col">
+          <h4>APP</h4>
+          <a href="https://github.com/Imnotndesh/yubalkt/releases" target="_blank">Android APK</a>
+          <a href="https://github.com/guillevc/yubal">Web dashboard</a>
+        </div>
+        <div class="footer-col">
+          <h4>UPSTREAM</h4>
+          <a href="https://github.com/guillevc/yubal" target="_blank" style="color:var(--teal)">❤️ guillevc/yubal</a>
+          <a href="https://github.com/guillevc/yubal" target="_blank">yubal server</a>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© yubal — powered by yt-dlp &amp; ytmusicapi — <a href="https://github.com/guillevc/yubal" target="_blank" style="color:var(--teal);">upstream by guillevc</a></span>
+      <span>V1.0.0</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+  const tabs = document.querySelectorAll('.tab-item');
+  const screens = document.querySelectorAll('.fscreen-img');
+  let autoCycle = null;
+
+  function activateTab(tab) {
+    tabs.forEach(t => t.classList.remove('active'));
+    screens.forEach(s => s.classList.remove('active'));
+    tab.classList.add('active');
+    const target = tab.dataset.tab;
+    const match = document.querySelector(`.fscreen-img[data-screen="${target}"]`);
+    if (match) match.classList.add('active');
+  }
+
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      activateTab(tab);
+      if (autoCycle) clearInterval(autoCycle);
+      autoCycle = setInterval(() => {
+        const activeTab = document.querySelector('.tab-item.active');
+        let next = activeTab.nextElementSibling;
+        if (!next) next = tabs[0];
+        activateTab(next);
+      }, 5000);
+    });
+  });
+    (function() {
+    const heroImgs = document.querySelectorAll('.hero-phone-img');
+    if (heroImgs.length < 2) return;
+    let idx = 0;
+    setInterval(() => {
+        heroImgs.forEach(i => i.classList.remove('active'));
+        idx = (idx + 1) % heroImgs.length;
+        heroImgs[idx].classList.add('active');
+    }, 8000);
+    })();
+
+  autoCycle = setInterval(() => {
+    const activeTab = document.querySelector('.tab-item.active');
+    let next = activeTab.nextElementSibling;
+    if (!next) next = tabs[0];
+    activateTab(next);
+  }, 5000);
+</script>
+
+</body>
+</html>
