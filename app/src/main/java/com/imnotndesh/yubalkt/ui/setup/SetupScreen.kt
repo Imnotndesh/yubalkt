@@ -259,7 +259,7 @@ fun SetupScreen(
                             color = MaterialTheme.colorScheme.onPrimary,
                         )
                         Spacer(Modifier.width(8.dp))
-                        Text("Saving...", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.SemiBold)
+                        Text("Saving..", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.SemiBold)
                     } else {
                         Text("Save & Connect", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.SemiBold)
                     }
