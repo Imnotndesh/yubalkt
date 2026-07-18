@@ -6,6 +6,7 @@ import android.content.pm.PackageManager
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
@@ -13,6 +14,8 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -24,9 +27,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -66,7 +71,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
+        enableEdgeToEdge()
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
             notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
         }
@@ -196,72 +201,203 @@ private fun ShareBottomSheet(url: String, apiService: YubalApiService, storage: 
         loading = false
     }
 
-    ModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState) {
-        Column(modifier = Modifier.fillMaxWidth().padding(24.dp)) {
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = sheetState,
+        containerColor = MaterialTheme.colorScheme.background,
+    ) {
+        Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp)) {
+            // ── Small header, echoes "yubal" wordmark used across screens ──
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    imageVector = Icons.Default.MusicNote,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(16.dp),
+                )
+                Spacer(Modifier.width(6.dp))
+                Text(
+                    text = "ADD TO YUBAL",
+                    style = MaterialTheme.typography.labelMedium,
+                    fontFamily = FontFamily.Monospace,
+                    letterSpacing = 1.5.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+
+            Spacer(Modifier.height(16.dp))
+
             if (loading) {
-                Box(modifier = Modifier.fillMaxWidth().height(200.dp), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
+                Box(modifier = Modifier.fillMaxWidth().height(160.dp), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator()
+                }
             } else if (contentInfo != null) {
                 val info = contentInfo!!
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    if (info.thumbnail_url != null) {
-                        AsyncImage(model = info.thumbnail_url, contentDescription = info.title, modifier = Modifier.size(64.dp).clip(RoundedCornerShape(12.dp)), contentScale = ContentScale.Crop)
-                        Spacer(Modifier.width(16.dp))
-                    }
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(text = info.title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, maxLines = 2, overflow = TextOverflow.Ellipsis)
-                        Text(text = info.artist, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        Text(text = info.kind.name.replaceFirstChar { it.uppercase() }, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
+
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+                    shape = RoundedCornerShape(12.dp),
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+                ) {
+                    Row(modifier = Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
+                        if (info.thumbnail_url != null) {
+                            AsyncImage(
+                                model = info.thumbnail_url,
+                                contentDescription = info.title,
+                                modifier = Modifier.size(60.dp).clip(RoundedCornerShape(10.dp)),
+                                contentScale = ContentScale.Crop,
+                            )
+                            Spacer(Modifier.width(14.dp))
+                        }
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = info.title,
+                                style = MaterialTheme.typography.titleSmall,
+                                fontWeight = FontWeight.Bold,
+                                maxLines = 2,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                            Text(
+                                text = info.artist,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                            Spacer(Modifier.height(4.dp))
+                            Box(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(6.dp))
+                                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.12f))
+                                    .padding(horizontal = 8.dp, vertical = 2.dp)
+                            ) {
+                                Text(
+                                    text = info.kind.name.replaceFirstChar { it.uppercase() },
+                                    style = MaterialTheme.typography.labelSmall,
+                                    fontFamily = FontFamily.Monospace,
+                                    color = MaterialTheme.colorScheme.primary,
+                                )
+                            }
+                        }
                     }
                 }
+
                 Spacer(Modifier.height(20.dp))
+
                 if (actionDone) {
-                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
-                        Icon(imageVector = Icons.Default.CheckCircle, contentDescription = null, tint = Color(0xFF16A34A), modifier = Modifier.size(24.dp))
-                        Spacer(Modifier.width(8.dp)); Text(text = actionMessage.ifEmpty { "Processing..." }, style = MaterialTheme.typography.bodyMedium, color = Color(0xFF16A34A))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.CheckCircle,
+                            contentDescription = null,
+                            tint = Color(0xFF16A34A),
+                            modifier = Modifier.size(22.dp),
+                        )
+                        Spacer(Modifier.width(8.dp))
+                        Text(
+                            text = actionMessage.ifEmpty { "Processing..." },
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Medium,
+                            color = Color(0xFF16A34A),
+                        )
                     }
-                    Spacer(Modifier.height(12.dp))
-                    Button(onClick = { scope.launch { sheetState.hide(); onDismiss() } }, modifier = Modifier.fillMaxWidth()) { Text("Done") }
+                    Spacer(Modifier.height(14.dp))
+                    Button(
+                        onClick = { scope.launch { sheetState.hide(); onDismiss() } },
+                        modifier = Modifier.fillMaxWidth().height(46.dp),
+                        shape = RoundedCornerShape(10.dp),
+                    ) {
+                        Text("Done", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.SemiBold)
+                    }
                 } else {
-                    Button(onClick = {
-                        scope.launch {
-                            actionLoading = true
-                            val baseUrl = storage.getInstanceUrl()
-                            if (baseUrl != null) {
-                                when (apiService.createJob(baseUrl, url)) {
-                                    is ApiResponse.Success -> { actionMessage = "Download queued!"; actionDone = true }
-                                    is ApiResponse.Error -> { actionMessage = "Failed to queue"; actionDone = true }
-                                }
-                            }
-                            actionLoading = false
-                        }
-                    }, enabled = !actionLoading, modifier = Modifier.fillMaxWidth().height(48.dp), shape = RoundedCornerShape(12.dp)) {
-                        if (actionLoading) { CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp, color = MaterialTheme.colorScheme.onPrimary); Spacer(Modifier.width(8.dp)) }
-                        Icon(imageVector = Icons.Default.Download, contentDescription = null, modifier = Modifier.size(20.dp)); Spacer(Modifier.width(8.dp)); Text("Download")
-                    }
-                    if (info.kind == ContentKind.PLAYLIST || info.kind == ContentKind.ALBUM) {
-                        Spacer(Modifier.height(8.dp))
-                        OutlinedButton(onClick = {
+                    Button(
+                        onClick = {
                             scope.launch {
                                 actionLoading = true
                                 val baseUrl = storage.getInstanceUrl()
                                 if (baseUrl != null) {
-                                    when (apiService.createSubscription(baseUrl, url)) {
-                                        is ApiResponse.Success -> { actionMessage = "Subscribed!"; actionDone = true }
-                                        is ApiResponse.Error -> { actionMessage = "Failed to subscribe"; actionDone = true }
+                                    when (apiService.createJob(baseUrl, url)) {
+                                        is ApiResponse.Success -> { actionMessage = "Download queued!"; actionDone = true }
+                                        is ApiResponse.Error -> { actionMessage = "Failed to queue"; actionDone = true }
                                     }
                                 }
                                 actionLoading = false
                             }
-                        }, enabled = !actionLoading, modifier = Modifier.fillMaxWidth().height(48.dp), shape = RoundedCornerShape(12.dp)) {
-                            if (actionLoading) { CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp); Spacer(Modifier.width(8.dp)) }
-                            Icon(imageVector = Icons.Default.Subscriptions, contentDescription = null, modifier = Modifier.size(20.dp)); Spacer(Modifier.width(8.dp))
-                            Text("Subscribe to ${if (info.kind == ContentKind.ALBUM) "Album" else "Playlist"}")
+                        },
+                        enabled = !actionLoading,
+                        modifier = Modifier.fillMaxWidth().height(46.dp),
+                        shape = RoundedCornerShape(10.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primary,
+                            contentColor = MaterialTheme.colorScheme.onPrimary,
+                        ),
+                    ) {
+                        if (actionLoading) {
+                            CircularProgressIndicator(modifier = Modifier.size(18.dp), strokeWidth = 2.dp, color = MaterialTheme.colorScheme.onPrimary)
+                            Spacer(Modifier.width(8.dp))
+                        } else {
+                            Icon(imageVector = Icons.Default.Download, contentDescription = null, modifier = Modifier.size(18.dp))
+                            Spacer(Modifier.width(8.dp))
+                        }
+                        Text("Download", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.SemiBold)
+                    }
+
+                    if (info.kind == ContentKind.PLAYLIST || info.kind == ContentKind.ALBUM) {
+                        Spacer(Modifier.height(10.dp))
+                        OutlinedButton(
+                            onClick = {
+                                scope.launch {
+                                    actionLoading = true
+                                    val baseUrl = storage.getInstanceUrl()
+                                    if (baseUrl != null) {
+                                        when (apiService.createSubscription(baseUrl, url)) {
+                                            is ApiResponse.Success -> { actionMessage = "Subscribed!"; actionDone = true }
+                                            is ApiResponse.Error -> { actionMessage = "Failed to subscribe"; actionDone = true }
+                                        }
+                                    }
+                                    actionLoading = false
+                                }
+                            },
+                            enabled = !actionLoading,
+                            modifier = Modifier.fillMaxWidth().height(46.dp),
+                            shape = RoundedCornerShape(10.dp),
+                            border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)),
+                            colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.primary),
+                        ) {
+                            if (actionLoading) {
+                                CircularProgressIndicator(modifier = Modifier.size(18.dp), strokeWidth = 2.dp)
+                                Spacer(Modifier.width(8.dp))
+                            } else {
+                                Icon(imageVector = Icons.Default.Subscriptions, contentDescription = null, modifier = Modifier.size(18.dp))
+                                Spacer(Modifier.width(8.dp))
+                            }
+                            Text(
+                                text = "Subscribe to ${if (info.kind == ContentKind.ALBUM) "Album" else "Playlist"}",
+                                style = MaterialTheme.typography.labelLarge,
+                                fontWeight = FontWeight.SemiBold,
+                            )
                         }
                     }
                 }
             } else {
-                Text(text = "Could not load content info", style = MaterialTheme.typography.bodyMedium)
-                Spacer(Modifier.height(12.dp)); Button(onClick = onDismiss, modifier = Modifier.fillMaxWidth()) { Text("Close") }
+                Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth().padding(vertical = 24.dp)) {
+                    Icon(
+                        imageVector = Icons.Default.Error,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.error,
+                        modifier = Modifier.size(32.dp),
+                    )
+                    Spacer(Modifier.height(10.dp))
+                    Text(text = "Could not load content info", style = MaterialTheme.typography.bodyMedium)
+                    Spacer(Modifier.height(14.dp))
+                    Button(onClick = onDismiss, modifier = Modifier.fillMaxWidth().height(46.dp), shape = RoundedCornerShape(10.dp)) {
+                        Text("Close", style = MaterialTheme.typography.labelLarge)
+                    }
+                }
             }
         }
         Spacer(Modifier.height(32.dp))
