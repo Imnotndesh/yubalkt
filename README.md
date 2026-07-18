@@ -86,7 +86,7 @@ From YouTube, YouTube Music, or your browser, use the native **Share** action an
 Built on top of [yubal](https://github.com/guillevc/yubal) — powered by [`yt-dlp`](https://github.com/yt-dlp/yt-dlp) and [`ytmusicapi`](https://github.com/sigma67/ytmusicapi).
 
 <div align="center">
-
-Made to pair with the yubal web dashboard — same server, same style, now in your pocket.
-
+  <p>
+    Made to pair with the yubal web dashboard — same server, same style, now in your pocket.
+  </p>
 </div>
